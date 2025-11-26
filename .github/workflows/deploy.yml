@@ -1,0 +1,74 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Create deployment archive
+      run: |
+        tar -czf secret-santa-bot.tar.gz \
+          --exclude=node_modules \
+          --exclude=.git \
+          --exclude=data \
+          --exclude=*.log \
+          .
+          
+    - name: Deploy to VPS
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        password: ${{ secrets.VPS_PASSWORD }}
+        script: |
+          # Stop existing containers
+          cd ~/secret-santa-bot 2>/dev/null && docker-compose down 2>/dev/null || true
+          
+          # Clean up old deployment
+          rm -rf ~/secret-santa-bot
+          
+          # Create new deployment directory
+          mkdir -p ~/secret-santa-bot
+          
+    - name: Copy files to VPS
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        password: ${{ secrets.VPS_PASSWORD }}
+        source: "secret-santa-bot.tar.gz"
+        target: "/tmp/"
+        
+    - name: Extract and start application
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.VPS_HOST }}
+        username: ${{ secrets.VPS_USERNAME }}
+        password: ${{ secrets.VPS_PASSWORD }}
+        script: |
+          # Extract deployment
+          cd ~/secret-santa-bot
+          tar -xzf /tmp/secret-santa-bot.tar.gz
+          rm /tmp/secret-santa-bot.tar.gz
+          
+          # Create data directory
+          mkdir -p data
+          
+          # Create .env file with bot token
+          echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" > .env
+          
+          # Build and start containers
+          docker-compose up --build -d
+          
+          # Show status
+          docker-compose ps
+          
+          echo "Deployment complete!"

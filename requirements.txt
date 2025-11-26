@@ -1,0 +1,40 @@
+1. General
+The bot must act as a Secret Santa host inside Telegram group chats and private chats.
+The bot must support three main commands: /create, /join, and /finish.
+Each Secret Santa game must be identified by a unique game ID.
+2. Game Creation – /create
+When a user sends /create, the bot must create a new game instance with a unique game ID.
+The bot must store the creator’s Telegram user ID as the “game owner”.
+The bot must respond with the generated game ID and short instructions on how others can join.
+A creator can have multiple active games, but each game must have its own ID.
+3. Joining a Game – /join
+When a user sends /join, the bot must ask for the game ID.
+After a valid game ID is provided, the bot must ask the user to enter their display name (e.g., “Write the name others should see”).
+The bot must add the participant to the specified game, storing Telegram user ID + chosen display name.
+The bot must prevent the same Telegram user from joining the same game more than once.
+The bot must reject joins for non-existent or already finished games.
+4. Finishing a Game – /finish
+Only the game owner is allowed to trigger /finish for that game.
+When the owner sends /finish, the bot must ask for the game ID if not clear from context.
+The bot must verify that the game has at least 3 participants before allowing finishing.
+On valid finish request, the bot must generate a Secret Santa assignment such that each participant gives a gift to exactly one other participant.
+No participant may be assigned to themselves.
+Each participant must receive a gift from exactly one other participant (one-to-one mapping, no duplicates, no missing people).
+5. Assignment & Notifications
+After assignments are generated, the bot must send a private message to each participant.
+The private message must state clearly “You will buy a gift for: <Target Name>”.
+The bot must not reveal the full assignment list to anyone, including the game owner.
+Once assignments are sent, the game state must be marked as “finished” and no new joins are allowed.
+6. Validation & Rules
+If valid assignments cannot be generated (e.g., technical error), the bot must retry randomization a few times and then send an error to the owner.
+The bot must handle the edge case where participants use the same name by still using Telegram IDs internally.
+The bot must reject /finish for games that already have been finished.
+The bot must provide simple error messages for invalid IDs, insufficient participants, and unauthorized finish attempts.
+7. Data & Persistence
+The bot must store game state (game ID, owner, participants, status) in a persistent storage (e.g., DB or file) so it survives bot restarts.
+The bot must store only minimal data: Telegram user ID, chosen display name, game ID, and assignment result.
+The bot must allow old finished games to be archived or cleaned up after a configurable period.
+8. Non-functional Requirements
+The bot must respond to commands within a few seconds under normal load.
+The bot must be able to run on a standard Node.js server environment.
+Basic logging must be available for debugging game creation, joining, finishing, and errors.al

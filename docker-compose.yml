@@ -1,0 +1,22 @@
+services:
+  secret-santa-bot:
+    build: .
+    container_name: secret-santa-bot
+    restart: unless-stopped
+    environment:
+      - BOT_TOKEN=${BOT_TOKEN}
+      - DB_PATH=/app/data/games.db
+    volumes:
+      - ./data:/app/data
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db-init
+
+  db-init:
+    build: .
+    container_name: secret-santa-db-init
+    command: node scripts/init-db.js
+    volumes:
+      - ./data:/app/data
+    restart: "no"
