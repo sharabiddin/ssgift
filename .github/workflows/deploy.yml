@@ -35,7 +35,7 @@ jobs:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USERNAME }}
         password: ${{ secrets.VPS_PASSWORD }}
-        source: ".,!node_modules,!.git,!data,!*.log,!*.tar.gz"
+        source: "./package.json,./package-lock.json,./index.js,./Dockerfile,./docker-compose.yml,./scripts,./src"
         target: "~/secret-santa-bot/"
         
     - name: Start application
