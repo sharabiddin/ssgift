@@ -19,7 +19,8 @@ jobs:
           --exclude=node_modules \
           --exclude=.git \
           --exclude=data \
-          --exclude=*.log \
+          --exclude='*.log' \
+          --exclude=secret-santa-bot.tar.gz \
           .
           
     - name: Deploy to VPS
