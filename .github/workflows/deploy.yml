@@ -13,16 +13,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Create deployment archive
-      run: |
-        tar -czf secret-santa-bot.tar.gz \
-          --exclude=node_modules \
-          --exclude=.git \
-          --exclude=data \
-          --exclude='*.log' \
-          --exclude=secret-santa-bot.tar.gz \
-          .
-          
     - name: Deploy to VPS
       uses: appleboy/ssh-action@v1.0.3
       with:
@@ -45,20 +35,18 @@ jobs:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USERNAME }}
         password: ${{ secrets.VPS_PASSWORD }}
-        source: "secret-santa-bot.tar.gz"
-        target: "/tmp/"
+        source: ".,!node_modules,!.git,!data,!*.log,!*.tar.gz"
+        target: "~/secret-santa-bot/"
         
-    - name: Extract and start application
+    - name: Start application
       uses: appleboy/ssh-action@v1.0.3
       with:
         host: ${{ secrets.VPS_HOST }}
         username: ${{ secrets.VPS_USERNAME }}
         password: ${{ secrets.VPS_PASSWORD }}
         script: |
-          # Extract deployment
+          # Navigate to deployment directory
           cd ~/secret-santa-bot
-          tar -xzf /tmp/secret-santa-bot.tar.gz
-          rm /tmp/secret-santa-bot.tar.gz
           
           # Create data directory
           mkdir -p data
